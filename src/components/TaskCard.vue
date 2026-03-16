@@ -1,28 +1,31 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import type { Task } from '../stores/taskStore'
+import ConfirmModal from './ConfirmModal.vue'
 
-// Props — data passed from parent
 const props = defineProps<{
   task: Task
   isFirst: boolean
   isLast: boolean
 }>()
 
-// Emits — events sent to parent
 const emit = defineEmits<{
   move: [id: string, direction: 'forward' | 'backward']
   delete: [id: string]
 }>()
 
-// Local state — description toggle
 const expanded = ref(false)
+const showConfirm = ref(false)
 
-// Priority styling
 const priorityConfig = {
   high: { label: 'High', class: 'bg-red-500/20 text-red-400 border border-red-500/30' },
   medium: { label: 'Medium', class: 'bg-amber-500/20 text-amber-400 border border-amber-500/30' },
   low: { label: 'Low', class: 'bg-green-500/20 text-green-400 border border-green-500/30' },
+}
+
+const handleConfirm = () => {
+  emit('delete', props.task.id)
+  showConfirm.value = false
 }
 </script>
 
@@ -41,7 +44,7 @@ const priorityConfig = {
         {{ priorityConfig[task.priority].label }}
       </span>
       <button
-        @click="emit('delete', task.id)"
+        @click="showConfirm = true"
         class="cursor-pointer text-gray-600 hover:text-red-400 transition-colors text-lg leading-none"
       >
         ✕
@@ -84,4 +87,12 @@ const priorityConfig = {
       </button>
     </div>
   </div>
+
+  <!-- Confirm Delete Modal -->
+  <ConfirmModal
+    v-if="showConfirm"
+    message="Are you sure you want to delete this task? This cannot be undone."
+    @confirm="handleConfirm"
+    @cancel="showConfirm = false"
+  />
 </template>
